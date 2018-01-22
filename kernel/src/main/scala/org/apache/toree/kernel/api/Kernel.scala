@@ -387,6 +387,7 @@ class Kernel (
     global.StreamState.setStreams(System.in, outStream, outStream)
     global.StreamState.withStreams {
       sparkContext = new SparkContext(sparkConf)
+      sparkContext.hadoopConfiguration.setStrings("fs.s3a.aws.credentials.provider", "sdl.AwsCredentialsReader")
     }
 
     sparkContext
@@ -399,7 +400,7 @@ class Kernel (
   private lazy val defaultSparkConf: SparkConf = createSparkConf(new SparkConf())
 
   override def sparkSession: SparkSession = {
-    defaultSparkConf.getOption("spark.master") match {
+    val sparkSession = defaultSparkConf.getOption("spark.master") match {
       case Some(master) if !master.contains("local") =>
         // when connecting to a remote cluster, the first call to getOrCreate
         // may create a session and take a long time, so this starts a future
@@ -424,6 +425,8 @@ class Kernel (
       case _ =>
         SparkSession.builder.config(defaultSparkConf).getOrCreate
     }
+    sparkSession.sparkContext.hadoopConfiguration.setStrings("fs.s3a.aws.credentials.provider", "sdl.AwsCredentialsReader")
+    sparkSession
   }
 
   override def sparkContext: SparkContext = sparkSession.sparkContext
