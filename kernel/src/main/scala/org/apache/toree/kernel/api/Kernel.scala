@@ -387,7 +387,14 @@ class Kernel (
     global.StreamState.setStreams(System.in, outStream, outStream)
     global.StreamState.withStreams {
       sparkContext = new SparkContext(sparkConf)
-      sparkContext.hadoopConfiguration.setStrings("fs.s3a.aws.credentials.provider", "sdl.AwsCredentialsReader")
+      val hadoopConf = sparkContext.hadoopConfiguration
+      hadoopConf.setStrings("fs.s3a.aws.credentials.provider", "sdl.AwsCredentialsReader")
+      hadoopConf.setStrings("fs.s3.aws.credentials.provider", "sdl.AwsCredentialsReader")
+      hadoopConf.setStrings("fs.s3n.aws.credentials.provider", "sdl.AwsCredentialsReader")
+//      hadoopConf.set("fs.s3.impl", "org.apache.hadoop.fs.s3.S3FileSystem")
+      hadoopConf.set("fs.s3.impl", "org.apache.hadoop.fs.s3native.NativeS3FileSystem")
+      hadoopConf.set("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
+      hadoopConf.set("fs.s3n.impl", "org.apache.hadoop.fs.s3native.NativeS3FileSystem")
     }
 
     sparkContext
@@ -438,7 +445,14 @@ class Kernel (
       case _ =>
         SparkSession.builder.config(defaultSparkConf).getOrCreate
     }
-    sparkSession.sparkContext.hadoopConfiguration.setStrings("fs.s3a.aws.credentials.provider", "sdl.AwsCredentialsReader")
+    val hadoopConf = sparkSession.sparkContext.hadoopConfiguration
+    hadoopConf.setStrings("fs.s3a.aws.credentials.provider", "sdl.AwsCredentialsReader")
+    hadoopConf.setStrings("fs.s3.aws.credentials.provider", "sdl.AwsCredentialsReader")
+    hadoopConf.setStrings("fs.s3n.aws.credentials.provider", "sdl.AwsCredentialsReader")
+//    hadoopConf.set("fs.s3.impl", "org.apache.hadoop.fs.s3.S3FileSystem")
+    hadoopConf.set("fs.s3.impl", "org.apache.hadoop.fs.s3native.NativeS3FileSystem")
+    hadoopConf.set("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
+    hadoopConf.set("fs.s3n.impl", "org.apache.hadoop.fs.s3native.NativeS3FileSystem")
     sparkSession
   }
 
