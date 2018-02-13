@@ -17,7 +17,7 @@
 
 .PHONY: help clean clean-dist build dev test system-test test-travis release pip-release bin-release dev-binder .binder-image audit audit-licenses
 
-BASE_VERSION?=0.3.0-dev1
+BASE_VERSION?=0.3.0.dev1
 VERSION=$(BASE_VERSION)-incubating
 COMMIT=$(shell git rev-parse --short=12 --verify HEAD)
 ifeq (, $(findstring dev, $(VERSION)))
@@ -35,13 +35,13 @@ SYSTEM_TEST_IMAGE?=apache/toree-systemtest
 GPG?=gpg
 GPG_PASSWORD?=
 BINDER_IMAGE?=apache/toree-binder
-DOCKER_WORKDIR?=/srv/toree
+DOCKER_WORKDIR?=`pwd`#/srv/toree
 DOCKER_ARGS?=
 define DOCKER
 docker run -t --rm \
 	--workdir $(DOCKER_WORKDIR) \
-	-e PYTHONPATH='/srv/toree' \
-	-v `pwd`:/srv/toree $(DOCKER_ARGS)
+	-e PYTHONPATH='`pwd`' \
+	-v `pwd`:`pwd` $(DOCKER_ARGS)
 endef
 
 define GEN_PIP_PACKAGE_INFO
@@ -114,7 +114,7 @@ target/scala-$(SCALA_VERSION)/$(ASSEMBLY_JAR): dist/toree-legal project/build.pr
 
 build: target/scala-$(SCALA_VERSION)/$(ASSEMBLY_JAR)
 
-dev: DOCKER_WORKDIR=/srv/toree/etc/examples/notebooks
+dev: DOCKER_WORKDIR=`pwd`/etc/examples/notebooks
 dev: SUSPEND=n
 dev: DEBUG_PORT=5005
 dev: .example-image dist
@@ -123,7 +123,7 @@ dev: .example-image dist
 		-v `pwd`/etc/kernel.json:/usr/local/share/jupyter/kernels/toree/kernel.json \
 		-p $(DEBUG_PORT):5005 -p 8888:8888 \
 		--user=root	$(EXAMPLE_IMAGE) \
-		bash -c "cp -r /srv/toree/dist/toree/* /usr/local/share/jupyter/kernels/toree/. \
+		bash -c "cp -r `pwd`/dist/toree/* /usr/local/share/jupyter/kernels/toree/. \
 			&& jupyter notebook --ip=* --no-browser"
 
 test: VM_WORKDIR=/src/toree-kernel
@@ -174,12 +174,12 @@ dist: dist/toree
 define JUPYTER_COMMAND
 pip install toree-$(BASE_VERSION).tar.gz
 jupyter toree install --interpreters=PySpark,SQL,Scala,SparkR
-cd /srv/toree/etc/examples/notebooks
+cd `pwd`/etc/examples/notebooks
 jupyter notebook --ip=* --no-browser
 endef
 
 export JUPYTER_COMMAND
-jupyter: DOCKER_WORKDIR=/srv/toree/dist/toree-pip
+jupyter: DOCKER_WORKDIR=`pwd`/dist/toree-pip
 jupyter: .example-image pip-release
 	@$(DOCKER) -p 8888:8888	-e SPARK_OPTS="--master=local[4]" --user=root	$(EXAMPLE_IMAGE) bash -c "$$JUPYTER_COMMAND"
 
@@ -210,7 +210,7 @@ publish-jars:
 ################################################################################
 # PIP PACKAGE
 ################################################################################
-dist/toree-pip/toree-$(BASE_VERSION).tar.gz: DOCKER_WORKDIR=/srv/toree/dist/toree-pip
+dist/toree-pip/toree-$(BASE_VERSION).tar.gz: DOCKER_WORKDIR=`pwd`/dist/toree-pip
 dist/toree-pip/toree-$(BASE_VERSION).tar.gz: dist/toree
 	@mkdir -p dist/toree-pip
 	@cp -r dist/toree dist/toree-pip
@@ -233,7 +233,7 @@ dist/toree-pip/toree-$(BASE_VERSION).tar.gz.md5 dist/toree-pip/toree-$(BASE_VERS
 
 sign-pip: dist/toree-pip/toree-$(BASE_VERSION).tar.gz.md5 dist/toree-pip/toree-$(BASE_VERSION).tar.gz.asc dist/toree-pip/toree-$(BASE_VERSION).tar.gz.sha512
 
-publish-pip: DOCKER_WORKDIR=/srv/toree/dist/toree-pip
+publish-pip: DOCKER_WORKDIR=`pwd`/dist/toree-pip
 publish-pip: PYPI_REPO?=https://pypi.python.org/pypi
 publish-pip: PYPI_USER?=
 publish-pip: PYPI_PASSWORD?=
