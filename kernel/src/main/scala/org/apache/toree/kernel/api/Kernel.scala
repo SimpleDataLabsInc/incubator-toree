@@ -389,9 +389,9 @@ class Kernel (
       sparkContext = new SparkContext(sparkConf)
       val hadoopConf = sparkContext.hadoopConfiguration
 //      hadoopConf.set("fs.s3.impl", "org.apache.hadoop.fs.s3.S3FileSystem")
-      hadoopConf.set("fs.s3.impl", "org.apache.hadoop.fs.s3native.NativeS3FileSystem")
+      hadoopConf.set("fs.s3.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
       hadoopConf.set("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
-      hadoopConf.set("fs.s3n.impl", "org.apache.hadoop.fs.s3native.NativeS3FileSystem")
+      hadoopConf.set("fs.s3n.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
     }
 
     sparkContext
@@ -447,9 +447,9 @@ class Kernel (
 //    hadoopConf.setStrings("fs.s3.aws.credentials.provider", "sdl.AwsCredentialsReader")
 //    hadoopConf.setStrings("fs.s3n.aws.credentials.provider", "sdl.AwsCredentialsReader")
 //    hadoopConf.set("fs.s3.impl", "org.apache.hadoop.fs.s3.S3FileSystem")
-    hadoopConf.set("fs.s3.impl", "org.apache.hadoop.fs.s3native.NativeS3FileSystem")
+    hadoopConf.set("fs.s3.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
     hadoopConf.set("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
-    hadoopConf.set("fs.s3n.impl", "org.apache.hadoop.fs.s3native.NativeS3FileSystem")
+    hadoopConf.set("fs.s3n.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
     sparkSession
   }
 
