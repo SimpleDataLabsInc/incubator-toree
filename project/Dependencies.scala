@@ -88,4 +88,15 @@ object Dependencies {
     )
   }
 
+  val hadoopVersion = settingKey[String]("Version of Apache Hadoop to use in Toree")
+
+  val hadoopAll = Def.setting {
+    Seq(
+      "org.apache.hadoop" % "hadoop-aws" % hadoopVersion.value % "provided",
+      "com.amazonaws"     % "aws-java-sdk"   % "1.11.199" % "provided",
+      "joda-time"         % "joda-time"      % "2.9.9" % "provided",
+      "org.apache.hadoop" % "hadoop-common" % hadoopVersion.value % "provided"
+    )
+  }
+
 }

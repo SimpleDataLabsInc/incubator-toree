@@ -26,7 +26,7 @@ crossScalaVersions in ThisBuild := Seq("2.11.8")
 scalaVersion in ThisBuild := (crossScalaVersions in ThisBuild).value.head
 Dependencies.sparkVersion in ThisBuild := {
   val envVar = "APACHE_SPARK_VERSION"
-  val defaultVersion = "2.0.0"
+  val defaultVersion = "2.3.0"
 
   Properties.envOrNone(envVar) match {
     case None =>
@@ -34,6 +34,20 @@ Dependencies.sparkVersion in ThisBuild := {
       defaultVersion
     case Some(version) =>
       sLog.value.info(s"Using Apache Spark version $version, provided from $envVar")
+      version
+  }
+}
+
+Dependencies.hadoopVersion in ThisBuild := {
+  val envVar = "APACHE_HADOOP_VERSION"
+  val defaultVersion = "2.9.0"
+
+  Properties.envOrNone(envVar) match {
+    case None =>
+      sLog.value.info(s"Using default Apache Hadoop version $defaultVersion!")
+      defaultVersion
+    case Some(version) =>
+      sLog.value.info(s"Using Apache Hadoop version $version, provided from $envVar")
       version
   }
 }
