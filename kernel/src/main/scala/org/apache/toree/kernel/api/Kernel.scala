@@ -424,7 +424,7 @@ class Kernel (
         // default timeout is 100ms and it is specified in reference.conf.
         import scala.concurrent.ExecutionContext.Implicits.global
         val sessionFuture = Future {
-          SparkSession.builder.config(defaultSparkConf).getOrCreate
+          SparkSession.builder.config(defaultSparkConf).config("hive.server2.thrift.port", "10000").config("spark.sql.hive.thriftServer.singleSession", true).enableHiveSupport().getOrCreate
         }
 
         try {
@@ -440,7 +440,7 @@ class Kernel (
         }
 
       case _ =>
-        SparkSession.builder.config(defaultSparkConf).getOrCreate
+        SparkSession.builder.config(defaultSparkConf).config("hive.server2.thrift.port", "10000").config("spark.sql.hive.thriftServer.singleSession", true).enableHiveSupport().getOrCreate
     }
     val hadoopConf = sparkSession.sparkContext.hadoopConfiguration
 //    hadoopConf.setStrings("fs.s3a.aws.credentials.provider", "sdl.AwsCredentialsReader")
