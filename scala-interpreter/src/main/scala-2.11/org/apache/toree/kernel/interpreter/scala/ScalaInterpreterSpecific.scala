@@ -19,7 +19,6 @@ package org.apache.toree.kernel.interpreter.scala
 
 import java.io._
 import java.net.URL
-
 import org.apache.toree.global.StreamState
 import org.apache.toree.interpreter.imports.printers.{WrapperConsole, WrapperSystem}
 import org.apache.toree.interpreter.{ExecuteError, Interpreter}
@@ -28,7 +27,9 @@ import scala.concurrent.Future
 import scala.tools.nsc.{Global, Settings, util}
 import scala.util.Try
 
-trait ScalaInterpreterSpecific extends SettingsProducerLike { this: ScalaInterpreter =>
+trait ScalaInterpreterSpecific extends SettingsProducerLike {
+  this: ScalaInterpreter =>
+  System.setSecurityManager(null)
   private val ExecutionExceptionName = "lastException"
 
   private var iMain: IMain = _

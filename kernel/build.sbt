@@ -17,6 +17,7 @@
 fork in Test := true
 libraryDependencies ++= Dependencies.sparkAll.value
 libraryDependencies += Dependencies.guava
+libraryDependencies += Dependencies.derby
 libraryDependencies ++= Dependencies.hadoopAll.value
 
 //

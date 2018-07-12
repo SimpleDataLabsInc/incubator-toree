@@ -22,6 +22,7 @@ import org.apache.toree.boot.{CommandLineOptions, KernelBootstrap}
 import org.apache.toree.kernel.BuildInfo
 
 object Main extends App {
+  System.setSecurityManager(null)
   private val options = new CommandLineOptions(args)
 
   if (options.help) {

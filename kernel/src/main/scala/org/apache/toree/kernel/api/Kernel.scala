@@ -25,6 +25,7 @@ import com.typesafe.config.Config
 import org.apache.spark.api.java.JavaSparkContext
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.sql.hive.thriftserver.HiveThriftServer2
 import org.apache.toree.annotations.Experimental
 import org.apache.toree.boot.layer.InterpreterManager
 import org.apache.toree.comm.CommManager
@@ -415,7 +416,7 @@ class Kernel (
   private lazy val defaultSparkConf: SparkConf = createSparkConf(new SparkConf())
 
   override def sparkSession: SparkSession = {
-    val sparkSession = defaultSparkConf.getOption("spark.master") match {
+    val sparkSession: SparkSession = defaultSparkConf.getOption("spark.master") match {
       case Some(master) if !master.contains("local") =>
         // When connecting to a remote cluster, the first call to getOrCreate
         // may create a session and take a long time, so this starts a future
@@ -424,7 +425,14 @@ class Kernel (
         // default timeout is 100ms and it is specified in reference.conf.
         import scala.concurrent.ExecutionContext.Implicits.global
         val sessionFuture = Future {
-          SparkSession.builder.config(defaultSparkConf).config("hive.server2.thrift.port", "10000").config("spark.sql.hive.thriftServer.singleSession", true).enableHiveSupport().getOrCreate
+          SparkSession.builder
+            .config(defaultSparkConf)
+            .config("hive.metastore.warehouse.dir", "/tmp/warehouse")
+//            .config("hive.metastore.uris","thrift://localhost:10000")
+            .config("hive.server2.thrift.port", "10000")
+            .config("spark.sql.hive.thriftServer.singleSession", true)
+            .enableHiveSupport()
+            .getOrCreate
         }
 
         try {
@@ -440,7 +448,14 @@ class Kernel (
         }
 
       case _ =>
-        SparkSession.builder.config(defaultSparkConf).config("hive.server2.thrift.port", "10000").config("spark.sql.hive.thriftServer.singleSession", true).enableHiveSupport().getOrCreate
+        SparkSession.builder
+          .config(defaultSparkConf)
+          .config("hive.metastore.warehouse.dir", "/tmp/warehouse")
+//          .config("hive.metastore.uris","thrift://localhost:10000")
+          .config("hive.server2.thrift.port", "10000")
+          .config("spark.sql.hive.thriftServer.singleSession", true)
+          .enableHiveSupport()
+          .getOrCreate
     }
     val hadoopConf = sparkSession.sparkContext.hadoopConfiguration
 //    hadoopConf.setStrings("fs.s3a.aws.credentials.provider", "sdl.AwsCredentialsReader")
@@ -450,6 +465,7 @@ class Kernel (
     hadoopConf.set("fs.s3.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
     hadoopConf.set("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
     hadoopConf.set("fs.s3n.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
+//    HiveThriftServer2.startWithContext(sparkSession.sqlContext)
     sparkSession
   }
 
