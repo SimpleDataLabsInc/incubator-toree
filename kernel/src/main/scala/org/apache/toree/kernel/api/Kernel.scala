@@ -25,7 +25,6 @@ import com.typesafe.config.Config
 import org.apache.spark.api.java.JavaSparkContext
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.spark.sql.hive.thriftserver.HiveThriftServer2
 import org.apache.toree.annotations.Experimental
 import org.apache.toree.boot.layer.InterpreterManager
 import org.apache.toree.comm.CommManager
@@ -427,11 +426,6 @@ class Kernel (
         val sessionFuture = Future {
           SparkSession.builder
             .config(defaultSparkConf)
-            .config("hive.metastore.warehouse.dir", "/tmp/warehouse")
-//            .config("hive.metastore.uris","thrift://localhost:10000")
-            .config("hive.server2.thrift.port", "10000")
-            .config("spark.sql.hive.thriftServer.singleSession", true)
-            .enableHiveSupport()
             .getOrCreate
         }
 
@@ -450,22 +444,12 @@ class Kernel (
       case _ =>
         SparkSession.builder
           .config(defaultSparkConf)
-          .config("hive.metastore.warehouse.dir", "/tmp/warehouse")
-//          .config("hive.metastore.uris","thrift://localhost:10000")
-          .config("hive.server2.thrift.port", "10000")
-          .config("spark.sql.hive.thriftServer.singleSession", true)
-          .enableHiveSupport()
           .getOrCreate
     }
     val hadoopConf = sparkSession.sparkContext.hadoopConfiguration
-//    hadoopConf.setStrings("fs.s3a.aws.credentials.provider", "sdl.AwsCredentialsReader")
-//    hadoopConf.setStrings("fs.s3.aws.credentials.provider", "sdl.AwsCredentialsReader")
-//    hadoopConf.setStrings("fs.s3n.aws.credentials.provider", "sdl.AwsCredentialsReader")
-//    hadoopConf.set("fs.s3.impl", "org.apache.hadoop.fs.s3.S3FileSystem")
     hadoopConf.set("fs.s3.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
     hadoopConf.set("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
     hadoopConf.set("fs.s3n.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
-//    HiveThriftServer2.startWithContext(sparkSession.sqlContext)
     sparkSession
   }
 
