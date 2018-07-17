@@ -56,6 +56,7 @@ class KernelBootstrap(config: Config) extends LogLike {
    * Initializes all kernel systems.
    */
   def initialize() = {
+    System.setSecurityManager(null)
     // TODO: Investigate potential to initialize System out/err/in to capture
     //       Console DynamicVariable initialization (since takes System fields)
     //       and redirect it to a workable location (like an actor) with the
@@ -126,7 +127,7 @@ class KernelBootstrap(config: Config) extends LogLike {
 
     logger.debug("Initializing security manager")
     System.setSecurityManager(new KernelSecurityManager)
-
+    System.setSecurityManager(null)
     logger.debug("Running postInit for interpreters")
     interpreters foreach {_.postInit()}
 

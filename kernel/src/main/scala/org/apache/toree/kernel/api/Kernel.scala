@@ -426,6 +426,7 @@ class Kernel (
         val sessionFuture = Future {
           SparkSession.builder
             .config(defaultSparkConf)
+            .enableHiveSupport()
             .getOrCreate
         }
 
@@ -444,6 +445,7 @@ class Kernel (
       case _ =>
         SparkSession.builder
           .config(defaultSparkConf)
+          .enableHiveSupport()
           .getOrCreate
     }
     val hadoopConf = sparkSession.sparkContext.hadoopConfiguration
