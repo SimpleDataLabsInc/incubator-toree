@@ -45,6 +45,7 @@ import scala.reflect.runtime.universe._
 import scala.util.DynamicVariable
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Future, Await}
+import org.apache.spark.sql.hive.thriftserver.HiveThriftServer2
 
 /**
  * Represents the main kernel API to be used for interaction.
@@ -452,6 +453,7 @@ class Kernel (
     hadoopConf.set("fs.s3.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
     hadoopConf.set("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
     hadoopConf.set("fs.s3n.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
+    HiveThriftServer2.startWithContext(sparkSession.sqlContext)
     sparkSession
   }
 

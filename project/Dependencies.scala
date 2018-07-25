@@ -64,6 +64,7 @@ object Dependencies {
   val sparkRepl = Def.setting{ "org.apache.spark" %% "spark-repl" % sparkVersion.value } // Apache v2
   val sparkSql = Def.setting{ "org.apache.spark" %% "spark-sql" % sparkVersion.value } // Apache v2
   val sparkStreaming = Def.setting{ "org.apache.spark" %% "spark-streaming" % sparkVersion.value } // Apache v2
+  val sparkHiveThriftServer = Def.setting{ "org.apache.spark" %% "spark-hive-thriftserver" % sparkVersion.value } // Apache v2
 
   val springCore = "org.springframework" % "spring-core" % "4.1.1.RELEASE"// Apache v2
 
@@ -84,7 +85,8 @@ object Dependencies {
       sparkMllib.value % "provided",
       sparkRepl.value % "provided",
       sparkSql.value % "provided",
-      sparkStreaming.value % "provided"
+      sparkStreaming.value % "provided",
+      sparkHiveThriftServer.value % "provided"
     )
   }
 
