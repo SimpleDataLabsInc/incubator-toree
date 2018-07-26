@@ -187,7 +187,7 @@ class CommandLineOptionsSpec extends FunSpec with Matchers {
           config.getInt("iopub_port") should be(43462)
           config.getInt("control_port") should be(44808)
           config.getInt("max_interpreter_threads") should be(4)
-          config.getInt("spark_context_intialization_timeout") should be(100)
+          config.getInt("spark_context_initialization_timeout") should be(100)
         }
       }
     }
@@ -283,8 +283,8 @@ class CommandLineOptionsSpec extends FunSpec with Matchers {
       }
     }
 
-    describe("when dealing with --spark-context-intialization-timeout") {
-      val key = "spark_context_intialization_timeout"
+    describe("when dealing with --spark-context-initialization-timeout") {
+      val key = "spark_context_initialization_timeout"
 
       it("when none of the options are specified, it should default to 100") {
         val options = new CommandLineOptions(Nil)
@@ -308,7 +308,7 @@ class CommandLineOptionsSpec extends FunSpec with Matchers {
           "--iopub-port", "77777",
           "--control-port", "55555",
           "--heartbeat-port", "44444",
-          "--spark-context-intialization-timeout", "30000"
+          "--spark-context-initialization-timeout", "30000"
         ))
         val config: Config = options.toConfig
         config.getInt(key) should be(30000)
@@ -321,7 +321,7 @@ class CommandLineOptionsSpec extends FunSpec with Matchers {
           "--iopub-port", "77777",
           "--control-port", "55555",
           "--heartbeat-port", "44444",
-          "--spark-context-intialization-timeout", "-1"
+          "--spark-context-initialization-timeout", "-1"
         ))
         val config: Config = options.toConfig
         config.getInt(key) should be(-1)
@@ -335,7 +335,7 @@ class CommandLineOptionsSpec extends FunSpec with Matchers {
             "--iopub-port", "77777",
             "--control-port", "55555",
             "--heartbeat-port", "44444",
-            "--spark-context-intialization-timeout", "foo"
+            "--spark-context-initialization-timeout", "foo"
           ))
           val config: Config = options.toConfig
         }
@@ -349,7 +349,67 @@ class CommandLineOptionsSpec extends FunSpec with Matchers {
             "--iopub-port", "77777",
             "--control-port", "55555",
             "--heartbeat-port", "44444",
-            "--spark-context-intialization-timeout", ""
+            "--spark-context-initialization-timeout", ""
+          ))
+          val config: Config = options.toConfig
+        }
+      }
+    }
+
+    describe("when dealing with --spark-context-initialization-mode") {
+      val key = "spark_context_initialization_mode"
+
+      it("when none of the options are specified, it should default to lazy") {
+        val options = new CommandLineOptions(Nil)
+        val config: Config = options.toConfig
+        config.getString(key) should be("lazy")
+      }
+
+      it("when other options are specified, it should default to lazy") {
+        val options = new CommandLineOptions(Seq(
+          "--interpreter-plugin",
+          "dummy:test.utils.DummyInterpreter"
+        ))
+        val config: Config = options.toConfig
+        config.getString(key) should be("lazy")
+      }
+
+      it("when the options is specified, it should return the specified value") {
+        val options = new CommandLineOptions(List(
+          "--stdin-port", "99999",
+          "--shell-port", "88888",
+          "--iopub-port", "77777",
+          "--control-port", "55555",
+          "--heartbeat-port", "44444",
+          "--spark-context-initialization-mode", "eager"
+        ))
+        val config: Config = options.toConfig
+        config.getString(key) should be("eager")
+      }
+
+      it("when an invalid value is specified, an exception must be thrown") {
+        intercept [OptionException] {
+          val options = new CommandLineOptions(List(
+            "--stdin-port", "99999",
+            "--shell-port", "88888",
+            "--iopub-port", "77777",
+            "--control-port", "55555",
+            "--heartbeat-port", "44444",
+            "--spark-context-initialization-mode", "foo"
+          ))
+          val config: Config = options.toConfig
+        }
+      }
+
+      it("when a value is not specified, an exception must be thrown") {
+        intercept [OptionException] {
+          val options = new CommandLineOptions(List(
+            "--stdin-port", "99999",
+            "--shell-port", "88888",
+            "--iopub-port", "77777",
+            "--control-port", "55555",
+            "--heartbeat-port", "44444",
+            "--spark-context-initialization-mode", ""
           ))
           val config: Config = options.toConfig
         }
