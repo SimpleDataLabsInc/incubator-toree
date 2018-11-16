@@ -367,7 +367,6 @@ class Kernel (
       logger.info("Setting deployMode to client")
       conf.set("spark.submit.deployMode", "client")
     }
-
     conf
   }
 
@@ -387,6 +386,7 @@ class Kernel (
     global.StreamState.setStreams(System.in, outStream, outStream)
     global.StreamState.withStreams {
       sparkContext = new SparkContext(sparkConf)
+      sparkContext.setLogLevel("DEBUG")
       val hadoopConf = sparkContext.hadoopConfiguration
 //      hadoopConf.set("fs.s3.impl", "org.apache.hadoop.fs.s3.S3FileSystem")
       hadoopConf.set("fs.s3.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
@@ -451,6 +451,7 @@ class Kernel (
         }
       }
     }
+    s.sparkContext.setLogLevel("DEBUG")
     val hadoopConf = s.sparkContext.hadoopConfiguration
     hadoopConf.set("fs.s3.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
     hadoopConf.set("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
