@@ -17,7 +17,7 @@
 
 .PHONY: help clean clean-dist build dev test system-test test-travis release pip-release bin-release dev-binder .binder-image audit audit-licenses
 
-BASE_VERSION?=0.3.0.dev1
+BASE_VERSION?=0.4.0.dev1
 VERSION=$(BASE_VERSION)-incubating
 COMMIT=$(shell git rev-parse --short=12 --verify HEAD)
 ifeq (, $(findstring dev, $(VERSION)))
@@ -27,7 +27,7 @@ IS_SNAPSHOT?=true
 SNAPSHOT:=-SNAPSHOT
 endif
 
-APACHE_SPARK_VERSION?=2.2.0
+APACHE_SPARK_VERSION?=2.2.2
 SCALA_VERSION?=2.11
 IMAGE?=jupyter/all-spark-notebook:228ae7a44e0c
 EXAMPLE_IMAGE?=apache/toree-examples
@@ -174,7 +174,7 @@ dist: dist/toree
 define JUPYTER_COMMAND
 pip install toree-$(BASE_VERSION).tar.gz
 jupyter toree install --interpreters=PySpark,SQL,Scala,SparkR
-cd `pwd`/etc/examples/notebooks
+cd /srv/toree/etc/examples/notebooks
 jupyter notebook --ip=* --no-browser
 endef
 
@@ -197,7 +197,7 @@ system-test: pip-release .system-test-image
 		$(SYSTEM_TEST_IMAGE) \
 		bash -c "(cd /srv/system-test-resources && python -m http.server 8000 &) && \
 		rm -rf /home/jovyan/.local/share/jupyter/kernels/apache_toree_scala/ && \
-		pip install /srv/toree-pip/toree*.tar.gz && jupyter toree install --interpreters=PySpark,Scala,SparkR && \
+		pip install /srv/toree-pip/toree*.tar.gz && jupyter toree install --interpreters=Scala && \
 		pip install nose jupyter_kernel_test && python /srv/test_toree.py"
 
 

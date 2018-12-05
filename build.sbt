@@ -22,7 +22,7 @@ version in ThisBuild := Properties.envOrElse("VERSION", "0.0.0-dev") +
   (if ((isSnapshot in ThisBuild).value) "-SNAPSHOT" else "")
 isSnapshot in ThisBuild := Properties.envOrElse("IS_SNAPSHOT","true").toBoolean
 organization in ThisBuild := "org.apache.toree.kernel"
-crossScalaVersions in ThisBuild := Seq("2.11.8")
+crossScalaVersions in ThisBuild := Seq("2.11.12")
 scalaVersion in ThisBuild := (crossScalaVersions in ThisBuild).value.head
 Dependencies.sparkVersion in ThisBuild := {
   val envVar = "APACHE_SPARK_VERSION"
@@ -84,7 +84,6 @@ javaOptions in ThisBuild ++= Seq(
 )
 // Add additional test option to show time taken per test
 testOptions in (ThisBuild, Test) += Tests.Argument("-oDF")
-
 // Build-wide dependencies
 resolvers in ThisBuild  ++= Seq(
   "Apache Snapshots" at "http://repository.apache.org/snapshots/",
@@ -137,10 +136,10 @@ credentials in ThisBuild+= Credentials(Path.userHome / ".ivy2" / ".credentials")
 lazy val root = (project in file("."))
   .settings(name := "toree")
   .aggregate(
-    macros,protocol,plugins,communication,kernelApi,client,scalaInterpreter,sqlInterpreter,pysparkInterpreter,sparkrInterpreter,kernel
+    macros,protocol,plugins,communication,kernelApi,client,scalaInterpreter,sqlInterpreter,kernel
   )
   .dependsOn(
-    macros,protocol,communication,kernelApi,client,scalaInterpreter,sqlInterpreter,pysparkInterpreter,sparkrInterpreter,kernel
+    macros,protocol,communication,kernelApi,client,scalaInterpreter,sqlInterpreter,kernel
   )
 
 /**
@@ -200,21 +199,7 @@ lazy val scalaInterpreter = (project in file("scala-interpreter"))
 */
 lazy val sqlInterpreter = (project in file("sql-interpreter"))
   .settings(name := "toree-sql-interpreter")
-  .dependsOn(plugins, protocol, kernelApi)
-
-/**
-* Project represents the Python interpreter used by the Spark Kernel.
-*/
-lazy val pysparkInterpreter = (project in file("pyspark-interpreter"))
-  .settings(name := "toree-pyspark-interpreter")
-  .dependsOn(plugins, protocol, kernelApi)
-
-/**
-* Project represents the R interpreter used by the Spark Kernel.
-*/
-lazy val sparkrInterpreter = (project in file("sparkr-interpreter"))
-  .settings(name := "toree-sparkr-interpreter")
-  .dependsOn(plugins, protocol, kernelApi)
+  .dependsOn(plugins, protocol, kernelApi, scalaInterpreter)
 
 /**
 * Project representing the kernel code for the Spark Kernel backend.
@@ -226,9 +211,7 @@ lazy val kernel = (project in file("kernel"))
     protocol % "test->test;compile->compile",
     communication % "test->test;compile->compile",
     kernelApi % "test->test;compile->compile",
-    pysparkInterpreter % "test->test;compile->compile",
     scalaInterpreter % "test->test;compile->compile",
-    sparkrInterpreter % "test->test;compile->compile",
     sqlInterpreter % "test->test;compile->compile"
   )
 

@@ -23,7 +23,7 @@ import com.typesafe.config.ConfigFactory
 import org.apache.toree.comm.CommStorage
 import org.apache.toree.kernel.protocol.v5.content.CommInfoReply
 import org.apache.toree.kernel.protocol.v5.kernel.ActorLoader
-import org.apache.toree.kernel.protocol.v5.{Header, KernelMessage, SystemActorType}
+import org.apache.toree.kernel.protocol.v5.{Header, KernelMessage, Metadata, SystemActorType}
 import org.mockito.AdditionalMatchers.{not => mockNot}
 import org.mockito.Matchers.{eq => mockEq}
 import org.mockito.Mockito._
@@ -47,6 +47,8 @@ class CommInfoRequestHandlerSpec extends TestKit(
   )
 ) with ImplicitSender with FunSpecLike with Matchers with MockitoSugar {
 
+  var WAIT_TIME = 2.seconds
+
   var mockCommStorage: CommStorage = mock[CommStorage]
 
   val actorLoader: ActorLoader =  mock[ActorLoader]
@@ -65,14 +67,14 @@ class CommInfoRequestHandlerSpec extends TestKit(
   describe("Comm Info Request Handler") {
     it("should return a KernelMessage containing a comm info response for a specific target name") {
       val kernelMessage = new KernelMessage(
-        Seq[Array[Byte]](), "test message", header, header, Map[String, String](), "{\"target_name\":\"test.name\"}"
+        Seq[Array[Byte]](), "test message", header, header, Metadata(), "{\"target_name\":\"test.name\"}"
       )
 
       when(mockCommStorage.getTargets()).thenReturn(Set("test.name"))
       when(mockCommStorage.getCommIdsFromTarget("test.name")).thenReturn(Option(scala.collection.immutable.IndexedSeq("1", "2")))
 
       actor ! kernelMessage
-      val reply = relayProbe.receiveOne(1.seconds).asInstanceOf[KernelMessage]
+      val reply = relayProbe.receiveOne(WAIT_TIME).asInstanceOf[KernelMessage]
       val commInfo = Json.parse(reply.contentString).as[CommInfoReply]
 
       commInfo.comms.size should equal (2)
@@ -83,7 +85,7 @@ class CommInfoRequestHandlerSpec extends TestKit(
 
   it("should return a KernelMessage containing a comm info response for all comms when target_name is missing from the message") {
     val kernelMessage = new KernelMessage(
-      Seq[Array[Byte]](), "test message", header, header, Map[String, String](), "{}"
+      Seq[Array[Byte]](), "test message", header, header, Metadata(), "{}"
     )
 
     when(mockCommStorage.getTargets()).thenReturn(Set("test.name1", "test.name2"))
@@ -91,7 +93,7 @@ class CommInfoRequestHandlerSpec extends TestKit(
     when(mockCommStorage.getCommIdsFromTarget("test.name2")).thenReturn(Option(scala.collection.immutable.IndexedSeq("3", "4")))
 
     actor ! kernelMessage
-    val reply = relayProbe.receiveOne(1.seconds).asInstanceOf[KernelMessage]
+    val reply = relayProbe.receiveOne(WAIT_TIME).asInstanceOf[KernelMessage]
     val commInfo = Json.parse(reply.contentString).as[CommInfoReply]
 
     commInfo.comms.size should equal (4)
@@ -103,14 +105,14 @@ class CommInfoRequestHandlerSpec extends TestKit(
 
   it("should return a KernelMessage containing an empty comm info response when the target name value is not found") {
     val kernelMessage = new KernelMessage(
-      Seq[Array[Byte]](), "test message", header, header, Map[String, String](), "{\"target_name\":\"can't_find_me\"}"
+      Seq[Array[Byte]](), "test message", header, header, Metadata(), "{\"target_name\":\"can't_find_me\"}"
     )
 
     when(mockCommStorage.getTargets()).thenReturn(Set("test.name"))
     when(mockCommStorage.getCommIdsFromTarget("test.name")).thenReturn(Option(scala.collection.immutable.IndexedSeq("1", "2")))
 
     actor ! kernelMessage
-    val reply = relayProbe.receiveOne(1.seconds).asInstanceOf[KernelMessage]
+    val reply = relayProbe.receiveOne(WAIT_TIME).asInstanceOf[KernelMessage]
     val commInfo = Json.parse(reply.contentString).as[CommInfoReply]
 
     commInfo.comms.size should equal (0)

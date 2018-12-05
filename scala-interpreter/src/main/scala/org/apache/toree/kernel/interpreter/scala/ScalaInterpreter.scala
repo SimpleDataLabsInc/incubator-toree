@@ -25,7 +25,7 @@ import org.apache.spark.SparkContext
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.repl.Main
 import org.apache.toree.interpreter._
-import org.apache.toree.kernel.api.KernelLike
+import org.apache.toree.kernel.api.{KernelLike, KernelOptions}
 import org.apache.toree.utils.TaskManager
 import org.slf4j.LoggerFactory
 import org.apache.toree.kernel.BuildInfo
@@ -49,13 +49,13 @@ class ScalaInterpreter(private val config:Config = ConfigFactory.load) extends I
 
   protected def kernel: KernelLike = _kernel
 
-   protected val logger = LoggerFactory.getLogger(this.getClass.getName)
+  protected val logger = LoggerFactory.getLogger(this.getClass.getName)
 
-   protected val _thisClassloader = this.getClass.getClassLoader
+  protected val _thisClassloader = this.getClass.getClassLoader
 
-   protected val lastResultOut = new ByteArrayOutputStream()
+  protected val lastResultOut = new ByteArrayOutputStream()
 
-   private[scala] var taskManager: TaskManager = _
+  private[scala] var taskManager: TaskManager = _
 
   /** Since the ScalaInterpreter can be started without a kernel, we need to ensure that we can compile things.
       Adding in the default classpaths as needed.
@@ -190,8 +190,9 @@ class ScalaInterpreter(private val config:Config = ConfigFactory.load) extends I
    }
 
   def prepareResult(interpreterOutput: String,
-                    showType: Boolean = false,
-                    noTruncate: Boolean = false
+                    showType: Boolean = KernelOptions.showTypes, // false
+                    noTruncate: Boolean = KernelOptions.noTruncation, // false
+                    showOutput: Boolean = KernelOptions.showOutput // true
                    ): (Option[AnyRef], Option[String], Option[String]) = {
     if (interpreterOutput.isEmpty) {
       return (None, None, None)
@@ -203,26 +204,54 @@ class ScalaInterpreter(private val config:Config = ConfigFactory.load) extends I
     val text = new StringBuilder
 
     interpreterOutput.split("\n").foreach {
+
+      case HigherOrderFunction(name, func, funcType) =>
+
+        definitions.append(s"$name: $func$funcType").append("\n")
+
       case NamedResult(name, vtype, value) if read(name).nonEmpty =>
+
         val result = read(name)
 
         lastResultAsString = result.map(String.valueOf(_)).getOrElse("")
         lastResult = result
 
-        val defLine = (showType, noTruncate) match {
-          case (true, true) =>
-            s"$name: $vtype = $lastResultAsString\n"
-          case (true, false) =>
-            s"$name: $vtype = $value\n"
-          case (false, true) =>
-            s"$name = $lastResultAsString\n"
-          case (false, false) =>
-            s"$name = $value\n"
-        }
+        // magicOutput should be handled as result to properly
+        // display based on MimeType.
+        if(vtype != "org.apache.toree.magic.MagicOutput") {
+          // default noTruncate = False
+          // %truncation on ==>  noTruncate = false -> display Value
+          // %truncation off ==>  noTruncate = true  -> display lastResultAsString
+          val defLine = (showType, noTruncate) match {
+            case (true, true) =>
+              s"$name: $vtype = $lastResultAsString\n"
+            case (true, false) =>
+              lastResultAsString = value
+              lastResult = Some(value)
+              s"$name: $vtype = $value\n"
+            case (false, true) =>
+              s"$name = $lastResultAsString\n"
+            case (false, false) =>
+              lastResultAsString = value
+              lastResult = Some(value)
+              s"$name = $value\n"
+          }
 
-        // suppress interpreter-defined values
-        if (!name.matches("res\\d+")) {
-          definitions.append(defLine)
+          // suppress interpreter-defined values
+          if ( defLine.matches("res\\d+(.*)[\\S\\s]") == false ) {
+            definitions.append(defLine)
+          }
+
+          if(showType) {
+            if(defLine.startsWith("res")) {
+              val v = defLine.split("^res\\d+(:|=)\\s+")(1)
+              lastResultAsString = v
+              lastResult = Some(v)
+            } else {
+              lastResultAsString = defLine
+              lastResult = Some(defLine)
+            }
+          }
         }
 
       case Definition(defType, name) =>
@@ -240,8 +269,8 @@ class ScalaInterpreter(private val config:Config = ConfigFactory.load) extends I
     }
 
     (lastResult,
-     if (definitions.nonEmpty) Some(definitions.toString) else None,
-     if (text.nonEmpty) Some(text.toString) else None)
+     if (definitions.nonEmpty && showOutput) Some(definitions.toString) else None,
+     if (text.nonEmpty && showOutput) Some(text.toString) else None)
   }
 
   protected def interpretBlock(code: String, silent: Boolean = false):
@@ -282,7 +311,7 @@ class ScalaInterpreter(private val config:Config = ConfigFactory.load) extends I
          val lastOutput = lastResultOut.toString("UTF-8").trim
          lastResultOut.reset()
 
-         val (obj, defStr, text) = prepareResult(lastOutput)
+         val (obj, defStr, text) = prepareResult(lastOutput, KernelOptions.showTypes, KernelOptions.noTruncation, KernelOptions.showOutput )
          defStr.foreach(kernel.display.content(MIMEType.PlainText, _))
          text.foreach(kernel.display.content(MIMEType.PlainText, _))
          val output = obj.map(Displayers.display(_).asScala.toMap).getOrElse(Map.empty)
@@ -385,6 +414,7 @@ class ScalaInterpreter(private val config:Config = ConfigFactory.load) extends I
 
 object ScalaInterpreter {
 
+  val HigherOrderFunction: Regex = """(\w+):\s+(\(\s*.*=>\s*\w+\))(\w+)\s*.*""".r
   val NamedResult: Regex = """(\w+):\s+([^=]+)\s+=\s*(.*)""".r
   val Definition: Regex = """defined\s+(\w+)\s+(.+)""".r
   val Import: Regex = """import\s+([\w\.,\{\}\s]+)""".r

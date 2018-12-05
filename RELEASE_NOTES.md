@@ -19,15 +19,25 @@
 
 # RELEASE_NOTES
 
-## 0.2.0-incubating (2018.01)
+## 0.3.0-incubating (2018.11)
 
-* Support Apache Spark 2.x codebase including Spark 2.2.0
+* Fix JupyterLab support after the introduction of new cell metadata information
+* Support for high-order functions
+* Fix %Showtypes and %Truncate magics
+* Added %ShowOutput magic to disable console output
+* Added support for custom resolvers for %AddDeps magic
+* Added support for predefined variables in SQL Statements
+* Removed support for PySpark and Spark R in Toree (use specific kernels)
+
+## 0.2.0-incubating (2018.08)
+
+* Support Apache Spark 2.x codebase including Spark 2.2.2
 * Enable Toree to run in Yarn cluster mode
 * Create spark context lazily to avoid long startup times for the kernel
 * Properly cleanup of temporary files/directories upon kernel shutdown
 * %AddJAR now supports HDFS file format
 * %AddDEP now defaults to default configuration
-* Cell Interrupt now cancel running Spark jobs and works in background process
+* Cell Interrupt now cancel running Spark jobs and works in background processes
 * Interpreters now have the ability to send results other than text/plain
 
 

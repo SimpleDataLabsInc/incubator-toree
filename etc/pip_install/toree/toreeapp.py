@@ -27,10 +27,8 @@ from toree._version import __version__, __commit__
 from jupyter_client.kernelspec import KernelSpec
 
 INTERPRETER_LANGUAGES = {
-    'PySpark' : 'python',
-    'SparkR' : 'r',
-    'SQL' : 'sql',
-    'Scala' : 'scala'
+    'Scala' : 'scala',
+    'SQL' : 'sql'
 }
 
 PYTHON_PATH = 'PYTHONPATH'
@@ -49,8 +47,8 @@ class ToreeInstall(InstallKernelSpec):
     jupyter toree install --spark_home=/spark/home/dir
     jupyter toree install --spark_opts='--master=local[4]'
     jupyter toree install --kernel_name=toree_special
-    jupyter toree install --toree_opts='--nosparkcontext'
-    jupyter toree install --interpreters=PySpark,SQL
+    jupyter toree install --toree_opts='--spark-context-initialization-mode none'
+    jupyter toree install --interpreters=SQL
     jupyter toree install --python=python
     '''
 

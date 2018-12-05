@@ -118,9 +118,10 @@ class CoursierDependencyDownloader extends DependencyDownloader {
     )
 
     val fetchUris = localDirectory +: repositoriesToURIs(allRepositories)
-    printStream.println("Preparing to fetch from:")
-    printStream.println(s"-> ${fetchUris.mkString("\n-> ")}")
-
+    if (verbose) {    
+      printStream.println("Preparing to fetch from:")
+      printStream.println(s"-> ${fetchUris.mkString("\n-> ")}")
+    }
     // Verify locations where we will download dependencies
     val resolution = start.process.run(fetch).unsafePerformSync
 
@@ -148,8 +149,11 @@ class CoursierDependencyDownloader extends DependencyDownloader {
 
     // Print success
     val uris = localArtifacts.flatMap(_.toOption).map(_.toURI)
-    uris.map(_.getPath).foreach(p => printStream.println(s"-> New file at $p"))
 
+    if (verbose) uris.map(_.getPath).foreach(p => printStream.println(s"-> New file at $p"))
+    
+    printStream.println("Obtained " + uris.size + " files")
+    
     uris
   }
 
@@ -252,7 +256,7 @@ class CoursierDependencyDownloader extends DependencyDownloader {
     override def downloadProgress(url: String, downloaded: Long): Unit = {
       downloadAmount.put(url, downloaded)
 
-      val ratio = downloadAmount(url).toDouble / downloadTotal(url).toDouble
+      val ratio = downloadAmount(url).toDouble / downloadTotal.getOrElse[Long](url, 1).toDouble
       val percent = ratio * 100.0
 
       if (trace) printStream.printf(
